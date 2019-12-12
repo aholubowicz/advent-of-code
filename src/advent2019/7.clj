@@ -34,13 +34,8 @@
                    (mem-value % 1 (+ 1 pos))
                    (first (:input c))))
         :input rest)
-    4  (do
-         (println "robie 4")
-         ;(println pos)
-         ;(println  ((:memory c) 32))
-         (println (mem-value (:memory c) 1 (+ 1 pos)))
-         (update c :output
-                 #(conj % (mem-value (:memory c) (nth modes 0) (+ 1 pos)))))
+    4 (update c :output
+                 #(conj % (mem-value (:memory c) (nth modes 0) (+ 1 pos))))
     7 (update c :memory
               #(if (< (mem-value % (nth modes 0) (+ pos 1)) (mem-value % (nth modes 1) (+ pos 2)))
                  (assoc % (mem-value % 1 (+ 3 pos)) 1)
