@@ -25,7 +25,7 @@
 
 ;(mem-value {0 1, 1 9, 2 10, 3 3} 0 3)
 
-(defn operation [{op :op modes :modes} pos c]
+(defn update-memory [{op :op modes :modes} pos c]
   (case op
     1 (update c :memory
               #(assoc %
@@ -44,15 +44,26 @@
                    (first (:input c))))
         :input rest)
     4 (update c :output
-              #(conj % (mem-value (:memory c) 0 (+ 1 pos))))))
+              #(conj % (mem-value (:memory c) 0 (+ 1 pos))))
+    7 (update c :memory
+              #(if (< (mem-value % (nth modes 0) (+ pos 1)) (mem-value % (nth modes 1) (+ pos 2)))
+                 (assoc % (mem-value % 1 (+ 3 pos)) 1)
+                 (assoc % (mem-value % 1 (+ 3 pos)) 0)))
+    8 (update c :memory
+              #(if (= (mem-value % (nth modes 0) (+ pos 1)) (mem-value % (nth modes 1) (+ pos 2)))
+                 (assoc % (mem-value % 1 (+ 3 pos)) 1)
+                 (assoc % (mem-value % 1 (+ 3 pos)) 0)))
+    c))
 
+(defn operation [instruction pos c]
+  (update-memory instruction pos c))
 
 
 ;(operation {:op 2, :modes '(0 0)} 0 computer)
-;(def computer (make-computer [4,0,99] [7] ))
-;(operation {:op 4, :modes '(1)} 0 computer)
+;(def computer (make-computer [8,2,2,0] [7]))
+;(operation {:op 5, :modes '(1 1 0)} 0 computer)
 
-(def num-of-params {1 3, 2 3, 3 1, 4 1, 99 0})
+(def num-of-params {1 3, 2 3, 3 1, 4 1, 5 2, 6 2, 7 3, 8 3, 99 0})
 
 (defn parse-instruction [x]
   (let [op (mod x 100)
@@ -61,8 +72,9 @@
 
 ;(parse-instruction 2302)
 ;(parse-instruction 10002)
+;(parse-instruction 1107)
 
-(defn calculate-pos [pos params-count]
+(defn calculate-pos [instruction pos params-count]
   (+ pos params-count 1))
 
 (defn compute [numbers input]
@@ -74,9 +86,9 @@
         (let [op (mem pos)
               instruction (parse-instruction op)
               params-count (count (:modes instruction))]
-          (println pos instruction params-count)
+          ;(println pos instruction params-count)
           (recur
-            (calculate-pos pos params-count)
+            (calculate-pos instruction pos params-count)
             (operation instruction pos c)))))))
 
 (def result (compute numbers [1]))
